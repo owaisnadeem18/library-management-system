@@ -1,76 +1,64 @@
-# 📚 Library Management System (Full-Stack SQL + RBAC)
+# 📚 Enterprise Library Management System (Monorepo)
 
-A comprehensive, production-ready **Library Management System** built with **React.js**, **Redux Toolkit**, **Node.js (Express)**, **MySQL**, and **Multer**. 
+A production-grade, full-stack **Library Management System** built with **Node.js (ES Modules)**, **Express.js**, **MySQL**, **Multer**, **React.js**, and **Redux Toolkit**.
 
-The system provides strict **Role-Based Access Control (RBAC)** across three distinct user roles (Member, Librarian, Admin), handles atomic database transactions for borrowing workflows, features image uploads for book covers, and provides automated fine calculations with dynamic slip generation.
-
----
-
-## 🌟 Key Features
-
-### 👤 Role-Based Access Control (RBAC)
-* **Member (Student / Reader):**
-  * Search and filter book catalog by title, author, or category.
-  * View current active loans, due dates, and unpaid fine breakdown.
-  * Calculate estimated late charges via an interactive Fine Calculator.
-* **Librarian:**
-  * Manage book inventory (Add, Edit, Delete books).
-  * Upload book cover images using **Multer**.
-  * Process book issues and returns.
-  * Auto-calculate overdue fines and mark fine payments.
-  * Generate printable transaction slips with dynamic QR code verification.
-* **Admin:**
-  * Manage all system users and assign roles (`MEMBER`, `LIBRARIAN`, `ADMIN`).
-  * Access comprehensive analytics (Total Fine Revenue, Most Borrowed Books, Active Loans).
-
-### 🛠️ Technical Highlights
-* **Atomic SQL Transactions:** Prevents race conditions during simultaneous book issue/return requests using MySQL transactions (`START TRANSACTION`, `COMMIT`, `ROLLBACK`).
-* **Multer File Storage:** Disk-storage pipeline with MIME-type file filtering and file size limits for book cover images.
-* **Redux Toolkit Global State:** Managed global authentication state, role-gated routes, dynamic cart/issue workflows, and catalog state.
-* **JWT Authentication:** Secure token-based authorization with custom role verification middleware.
+This system uses a **Monorepo Architecture** (`/backend` and `/frontend`), adhering to strict **Object-Oriented Programming (OOP)**, the **Controller-Service Layer Pattern**, **Role-Based Access Control (RBAC)**, atomic MySQL transactions, dynamic late-fine calculations, and centralized error handling.
 
 ---
 
-## 🏗️ Tech Stack
+## 🏗️ Architecture & Core Features
 
-* **Frontend:** React.js, Redux Toolkit (RTK), Axios, React Router v6, Tailwind CSS / Bootstrap.
-* **Backend:** Node.js, Express.js.
-* **Database:** MySQL (`mysql2` with Connection Pooling).
-* **Middleware & Tools:** Multer (File Uploads), JSON Web Tokens (JWT), BcryptJS (Password Hashing).
+* **Layered OOP Architecture:** Separation of concerns between Data Access (`Services`), Business/Request Logic (`Controllers`), and API routing.
+* **Monorepo Management:** Single Git repository hosting decoupled `/backend` and `/frontend` environments.
+* **Atomic SQL Transactions:** Guarantees data consistency during concurrent issue and return requests using MySQL `START TRANSACTION`, `COMMIT`, and `ROLLBACK`.
+* **Multer File Pipeline:** Disk storage engine with dynamic directory initialization, MIME type filtering, and image upload limits for book covers.
+* **Centralized Async Error Handling:** Custom `AppError` class extending native JavaScript `Error` with a global Express error handling middleware pipeline.
+* **Frontend State Management:** Integrated Redux Toolkit (RTK) slices for global auth context, catalog caching, dynamic carts, and API interceptors.
 
 ---
 
-## 📂 Project Architecture
+## 📂 Project Directory Structure
 
 ```text
 library-management-system/
 ├── backend/
 │   ├── config/
-│   │   └── db.js                # MySQL Connection Pool
+│   │   └── db.js                 # MySQL Connection Pool (mysql2/promise)
+│   ├── utils/
+│   │   ├── appError.js           # Custom AppError Class (Inheritance)
+│   │   └── catchAsync.js         # Asynchronous Exception Handler Wrapper
 │   ├── middleware/
-│   │   ├── authMiddleware.js    # JWT & RBAC Verification
-│   │   └── uploadMiddleware.js  # Multer Configuration for Book Covers
-│   ├── controllers/
-│   │   ├── authController.js    # Login & Registration
-│   │   ├── bookController.js    # Catalog & Multer Upload Logic
-│   │   ├── issueController.js   # SQL Transaction Issue/Return Logic
-│   │   └── adminController.js   # Role Management & Analytics
-│   ├── routes/
+│   │   ├── errorMiddleware.js    # Centralized Operational Error Middleware
+│   │   ├── authMiddleware.js     # JWT & RBAC Restriction Middleware
+│   │   └── uploadMiddleware.js   # Multer Storage Engine & Disk Config
+│   ├── services/                 # OOP Business Logic & SQL Encapsulation
+│   │   ├── userService.js        # Auth & Account Database Operations
+│   │   ├── bookService.js        # Catalog & Multer File Persistence Logic
+│   │   ├── issueService.js       # Atomic SQL Transactions (Borrow/Return)
+│   │   └── adminService.js       # Role Promotions & System Analytics
+│   ├── controllers/              # HTTP Route Request Handlers
+│   │   ├── authController.js
+│   │   ├── bookController.js
+│   │   ├── issueController.js
+│   │   └── adminController.js
+│   ├── routes/                   # Express API Route Groups
 │   │   ├── authRoutes.js
 │   │   ├── bookRoutes.js
 │   │   ├── issueRoutes.js
 │   │   └── adminRoutes.js
 │   ├── uploads/
-│   │   └── covers/              # Stored Cover Images
-│   ├── .env.example
-│   └── server.js
+│   │   └── covers/               # Uploaded Book Cover Media Files
+│   ├── .env
+│   ├── package.json              # Backend Dependencies ("type": "module")
+│   └── server.js                 # Express Application Entry Point
 │
 └── frontend/
     ├── src/
-    │   ├── components/          # Shared Components & Protected Routes
-    │   ├── pages/               # Landing, Member, Librarian & Admin Dashboards
+    │   ├── components/           # Shared UI, Modals & Protected Routes
+    │   ├── pages/                # Member, Librarian, & Admin Dashboards
     │   ├── redux/
-    │   │   ├── store.js         # Redux Toolkit Store Config
-    │   │   └── slices/          # Auth, Book Catalog, & Issue Slices
-    │   └── services/            # Axios Setup with Interceptors
-    └── App.js
+    │   │   ├── store.js          # Redux Toolkit Global Store Config
+    │   │   └── slices/           # Auth, Book Catalog, & Issue Cart Slices
+    │   └── services/             # Axios Setup with Auth Interceptors
+    └── package.json
+```
