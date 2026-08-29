@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { AppError } from "../utils/appError";
-import { catchAsync } from "../utils/catchAsync";
+import { AppError } from "../utils/appError.js";
+import { catchAsync } from "../utils/catchAsync.js";
 
 // Authentication Guard (Verify JWT)
 export const protect = catchAsync(async (req, res, next) => {
