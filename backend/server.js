@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 // Config & Routes Imports
 import pool from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import bookRoutes from "./routes/bookRoutes.js"
 import { errorHandler } from './middleware/errorMiddleware.js';
 
 dotenv.config();
@@ -22,8 +23,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve Uploaded Images Statically (Books cover pictures ke liye)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 
 // Health Check Route
 app.get('/', (req, res) => {
@@ -32,8 +33,9 @@ app.get('/', (req, res) => {
 
 // Auth Routes API Endpoint
 app.use('/api/auth', authRoutes);
+app.use("/api/books" , bookRoutes)
 
-// Global Error Handler Middleware (Hamesha saare routes ke baad aayega)
+// Global Error Handler Middleware
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;

@@ -1,5 +1,5 @@
-import pool from "../config/db";
-import { AppError } from "../utils/appError";
+import pool from "../config/db.js";
+import { AppError } from "../utils/appError.js";
 
 export class BookService {
 
