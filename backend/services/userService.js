@@ -1,10 +1,14 @@
-// create a new class of UserService
+import pool from '../config/db.js';
+import bcrypt from 'bcryptjs';
+import { AppError } from '../utils/appError.js';
+import jwt from 'jsonwebtoken';
 
+// create a new class of UserService
 export class UserService {
   // Create New User Account (Registration)
   static async createUser({ name, email, password }) {
     // 1. Check if user already exists
-    const [existingUser] = await db.execute(
+    const [existingUser] = await pool.execute(
       "SELECT id FROM users WHERE email = ?",
       [email],
     );
@@ -23,7 +27,7 @@ export class UserService {
     // 3. Insert User into Database (Default role: MEMBER)
     const query =
       'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, "MEMBER")';
-    const [result] = await db.execute(query, [name, email, hashedPassword]);
+    const [result] = await pool.execute(query, [name, email, hashedPassword]);
 
     return { id: result.insertId, name, email, role: "MEMBER" };
   }
@@ -31,7 +35,7 @@ export class UserService {
   // Authenticate User (Login Verification)
   static async authenticateUser({ email, password }) {
     // 1. Fetch User Record
-    const [users] = await db.execute("SELECT * FROM users WHERE email = ?", [
+    const [users] = await pool.execute("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
     if (users.length === 0) {
