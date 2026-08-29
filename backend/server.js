@@ -6,15 +6,13 @@ import { fileURLToPath } from 'url';
 
 // Config & Routes Imports
 import pool from './config/db.js';
-import authRoutes from './routes/authRoutes.js';
-import bookRoutes from "./routes/bookRoutes.js"
+import apiRoutes from './routes/index.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 
 dotenv.config();
 
 const app = express();
 
-// ES Module path setup (Uploads static folder serving ke liye)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -22,7 +20,6 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 
@@ -31,9 +28,8 @@ app.get('/', (req, res) => {
   res.status(200).json({ status: 'success', message: 'Library System API is running...' });
 });
 
-// Auth Routes API Endpoint
-app.use('/api/auth', authRoutes);
-app.use("/api/books" , bookRoutes)
+// All Routes API Endpoint
+app.use('/api', apiRoutes);
 
 // Global Error Handler Middleware
 app.use(errorHandler);
