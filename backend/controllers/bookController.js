@@ -5,6 +5,8 @@ import {catchAsync} from "../utils/catchAsync.js";
 export const createBook = catchAsync(async (req, res, next) => {
   const { title, author, isbn, category, total_copies } = req.body;
 
+  console.log("Request Body:", req.body);
+
   if (!title || !author || !isbn || !category || !total_copies) {
     return next(
       new AppError(
@@ -47,6 +49,14 @@ export const getBookById = catchAsync(async (req, res) => {
   res.status(200).json({
     status: "success",
     data: { book },
+  });
+});
+
+export const getCategories = catchAsync(async (req, res) => {
+  const categories = await BookService.getCategories();
+  res.status(200).json({
+    status: "success",
+    data: { categories },
   });
 });
 
