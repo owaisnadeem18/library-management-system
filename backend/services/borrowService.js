@@ -68,4 +68,71 @@ export class BorrowService {
         connection.release();
     }
   }
+
+
+    // 2. Return Book:
+    
+    static async returnBook(userId, bookId) {
+        const connection = await pool.getConnection();
+
+        try {
+
+            connection.beginTransaction();
+
+            // Check 1: Book exists & issued to user
+            const [borrows] = await connection.query(
+                'SELECT id FROM borrows WHERE user_id = ? AND book_id = ? AND status = "ISSUED" FOR UPDATE',
+                [userId, bookId]
+            );
+
+            if (borrows.length === 0) {
+                throw new AppError('No issued record found for this book and user.', 404);
+            }
+
+            const borrowRecord = borrows[0];
+      const returnDate = new Date();
+      const dueDate = new Date(borrowRecord.due_date);
+
+      // Late Fine Calculation Logic (Rs. 50 per day)
+      let fineAmount = 0;
+      const timeDiff = returnDate.getTime() - dueDate.getTime();
+      const lateDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+      if (lateDays > 0) {
+        fineAmount = lateDays * 50;
+      }
+
+      // Update Borrow Record
+      await connection.query(
+        `UPDATE borrows 
+         SET return_date = ?, fine_amount = ?, status = 'RETURNED' 
+         WHERE id = ?`,
+        [returnDate, fineAmount, borrowId]
+      );
+
+      // Increment Available Copies
+      await connection.query(
+        'UPDATE books SET available_copies = available_copies + 1 WHERE id = ?',
+        [borrowRecord.book_id]
+      );
+
+      await connection.commit();
+      return {
+        borrow_id: borrowId,
+        fine_amount: fineAmount,
+        status: 'RETURNED'
+      };
+
+        
+        }
+        catch (error) {
+            await connection.rollback();
+            throw error;
+        }
+
+        finally {
+            connection.release();
+        }
+    }
+
 }
