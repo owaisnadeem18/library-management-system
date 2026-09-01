@@ -135,4 +135,17 @@ export class BorrowService {
         }
     }
 
+    // 3. User History
+  async getUserHistory(userId) {
+    const [rows] = await pool.query(
+      `SELECT b.id, bk.title, bk.author, b.issue_date, b.due_date, b.return_date, b.fine_amount, b.status
+       FROM borrows b
+       JOIN books bk ON b.book_id = bk.id
+       WHERE b.user_id = ?
+       ORDER BY b.id DESC`,
+      [userId]
+    );
+    return rows;
+  }
+
 }
