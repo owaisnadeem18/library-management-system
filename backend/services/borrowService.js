@@ -19,7 +19,7 @@ export class BorrowService {
         throw new AppError("Book not found.", 404);
       }
 
-      if (books?.available_copies <= 0) {
+      if (books[0].available_copies <= 0) {
         throw new AppError('Book is currently out of stock.', 400)
     }
 
@@ -61,7 +61,7 @@ export class BorrowService {
       };
     } catch (err) {
         await connection.rollback();
-      throw error;
+      throw err;
     }
 
     finally {
@@ -77,7 +77,7 @@ export class BorrowService {
 
         try {
 
-            connection.beginTransaction();
+            await connection.beginTransaction();
 
             // Check 1: Book exists & issued to user
             const [borrows] = await connection.query(
@@ -149,3 +149,4 @@ export class BorrowService {
   }
 
 }
+
