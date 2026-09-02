@@ -20,16 +20,16 @@ export class BorrowService {
       }
 
       if (books[0].available_copies <= 0) {
-        throw new AppError('Book is currently out of stock.', 400)
-    }
+        throw new AppError("Book is currently out of stock.", 400);
+      }
 
-    // Check 2: Check if user already has this book issued
+      // Check 2: Check if user already has this book issued
       const [existing] = await connection.query(
         'SELECT id FROM borrows WHERE user_id = ? AND book_id = ? AND status = "ISSUED"',
-        [userId, bookId]
+        [userId, bookId],
       );
       if (existing.length > 0) {
-        throw new AppError('You have already issued this book.', 400);
+        throw new AppError("You have already issued this book.", 400);
       }
 
       // 14 Days Return Window Logic
@@ -41,13 +41,13 @@ export class BorrowService {
       const [result] = await connection.query(
         `INSERT INTO borrows (user_id, book_id, issue_date, due_date, status)
          VALUES (?, ?, ?, ?, 'ISSUED')`,
-        [userId, bookId, issueDate, dueDate]
+        [userId, bookId, issueDate, dueDate],
       );
 
       // Decrement Available Copies
       await connection.query(
-        'UPDATE books SET available_copies = available_copies - 1 WHERE id = ?',
-        [bookId]
+        "UPDATE books SET available_copies = available_copies - 1 WHERE id = ?",
+        [bookId],
       );
 
       await connection.commit();
@@ -57,39 +57,38 @@ export class BorrowService {
         book_id: bookId,
         issue_date: issueDate,
         due_date: dueDate,
-        status: 'ISSUED'
+        status: "ISSUED",
       };
     } catch (err) {
-        await connection.rollback();
+      await connection.rollback();
       throw err;
-    }
-
-    finally {
-        connection.release();
+    } finally {
+      connection.release();
     }
   }
 
+  // 2. Return Book:
 
-    // 2. Return Book:
-    
-    static async returnBook(userId, bookId) {
-        const connection = await pool.getConnection();
+  static async returnBook(userId, bookId) {
+    const connection = await pool.getConnection();
 
-        try {
+    try {
+      await connection.beginTransaction();
 
-            await connection.beginTransaction();
+      // Check 1: Book exists & issued to user
+      const [borrows] = await connection.query(
+        'SELECT id FROM borrows WHERE user_id = ? AND book_id = ? AND status = "ISSUED" FOR UPDATE',
+        [userId, bookId],
+      );
 
-            // Check 1: Book exists & issued to user
-            const [borrows] = await connection.query(
-                'SELECT id FROM borrows WHERE user_id = ? AND book_id = ? AND status = "ISSUED" FOR UPDATE',
-                [userId, bookId]
-            );
+      if (borrows.length === 0) {
+        throw new AppError(
+          "No issued record found for this book and user.",
+          404,
+        );
+      }
 
-            if (borrows.length === 0) {
-                throw new AppError('No issued record found for this book and user.', 404);
-            }
-
-            const borrowRecord = borrows[0];
+      const borrowRecord = borrows[0];
       const returnDate = new Date();
       const dueDate = new Date(borrowRecord.due_date);
 
@@ -107,46 +106,39 @@ export class BorrowService {
         `UPDATE borrows 
          SET return_date = ?, fine_amount = ?, status = 'RETURNED' 
          WHERE id = ?`,
-        [returnDate, fineAmount, borrowId]
+        [returnDate, fineAmount, borrowId],
       );
 
       // Increment Available Copies
       await connection.query(
-        'UPDATE books SET available_copies = available_copies + 1 WHERE id = ?',
-        [borrowRecord.book_id]
+        "UPDATE books SET available_copies = available_copies + 1 WHERE id = ?",
+        [borrowRecord.book_id],
       );
 
       await connection.commit();
       return {
         borrow_id: borrowId,
         fine_amount: fineAmount,
-        status: 'RETURNED'
+        status: "RETURNED",
       };
-
-        
-        }
-        catch (error) {
-            await connection.rollback();
-            throw error;
-        }
-
-        finally {
-            connection.release();
-        }
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
     }
+  }
 
-    // 3. User History
-  async getUserHistory(userId) {
+  // 3. User History
+  static async getUserHistory(userId) {
     const [rows] = await pool.query(
       `SELECT b.id, bk.title, bk.author, b.issue_date, b.due_date, b.return_date, b.fine_amount, b.status
        FROM borrows b
        JOIN books bk ON b.book_id = bk.id
        WHERE b.user_id = ?
        ORDER BY b.id DESC`,
-      [userId]
+      [userId],
     );
     return rows;
   }
-
 }
-
