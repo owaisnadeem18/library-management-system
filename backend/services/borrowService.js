@@ -1,5 +1,5 @@
-import AppError from "../utils/appError.js";
-import pool from "../config/db";
+import {AppError} from "../utils/appError.js";
+import pool from "../config/db.js";
 
 export class BorrowService {
   // 1. Issue Book

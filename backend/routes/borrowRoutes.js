@@ -1,6 +1,7 @@
 import express from "express"
 import { Router } from "express"
-import { getMyHistory, issueBook, returnBook } from "../controllers/borrowController";
+import { getMyHistory, issueBook, returnBook } from "../controllers/borrowController.js";
+import {restrictTo} from "../middleware/authMiddleware.js";
 
 const router = express.Router()
 

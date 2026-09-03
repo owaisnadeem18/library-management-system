@@ -1,5 +1,5 @@
-import { BorrowService } from "../services/borrowService";
-import { catchAsync } from "../utils/catchAsync";
+import { BorrowService } from "../services/borrowService.js";
+import { catchAsync } from "../utils/catchAsync.js";
 
 export const issueBook = catchAsync(async (req , res , next) => { 
     const { book_id } = req.body;
