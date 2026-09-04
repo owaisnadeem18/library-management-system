@@ -25,6 +25,7 @@ export const createBook = catchAsync(async (req, res, next) => {
     coverImage,
   });
 
+  
   res.status(201).json({
     status: "success",
     data: { book },
