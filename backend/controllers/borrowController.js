@@ -25,5 +25,5 @@ export const returnBook = catchAsync(async (req , res , next) => {
 export const getMyHistory = catchAsync(async (req , res , next) => {
     const userId = req.user.id
     const history = await BorrowService.getUserHistory(userId)
-    return res.status(200).json({ status: 'success', data: { history }})
+    return res.status(200).json({ status: 'success', data: {history}})
 })
